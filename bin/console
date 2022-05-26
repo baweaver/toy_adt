@@ -4,12 +4,30 @@
 require "bundler/setup"
 require "toy_adt"
 
-# You can add fixtures and/or initialization code here to make experimenting
-# with your gem easier. You can also use a different console, if you like.
+Coord = ToyAdt.type(x: Integer, y: Integer, z: Integer) do
+  def translate(x: 0, y: 0, z: 0)
+    Coord.new(x: @x + x, y: @y + y, z: @z + z)
+  end
+end
 
-# (If you use this, don't forget to add pry to your Gemfile!)
-# require "pry"
-# Pry.start
+Shape = ToyAdt.sum(
+  circle: { radius: Integer, center: Coord },
+  square: { top_left: Coord, bottom_right: Coord }
+) do
+  def translate(x: 0, y: 0, z: 0)
+    case self
+    when Shape::Circle
+      Shape::Circle.new(radius:, center: center.translate(x:, y:, z:))
+    when Shape::Square
+      Shape::Square.new(
+        top_left: top_left.translate(x:, y:, z:),
+        bottom_right: bottom_right.translate(x:, y:, z:)
+      )
+    else
+      T.absurd(self)
+    end
+  end
+end
 
 require "irb"
 IRB.start(__FILE__)
