@@ -16,7 +16,7 @@ module ToyAdt
       ).returns(T::Hash[Symbol, T.untyped])
     }
     def deconstruct_keys(keys)
-      return properties.to_h { |k| [k, send(k)] } if keys.empty? || keys.nil?
+      return properties.to_h { |k| [k, send(k)] } if keys.nil? || keys.empty?
 
       (properties & keys).to_h { |k| [k, send(k)] }
     end

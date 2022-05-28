@@ -1,5 +1,6 @@
 # typed: false
 require "sorbet-runtime"
+require "set"
 
 module ToyAdt
   module PublicApi
@@ -34,7 +35,12 @@ module ToyAdt
         extend T::Helpers
         sealed!
 
+        const_set(:FIELDS, types.keys)
+
         module_eval(&fn) if block_given?
+
+        def self.match(&fn) = Matcher.new(from: self, &fn)
+        def self.match_call(input, &fn) = match(&fn).call(input)
       end
 
       types.each do |type, config|
@@ -42,12 +48,19 @@ module ToyAdt
           include container_module
           include DeconstructableSorbetStruct
 
+          const_set(:CONTAINER, container_module)
+
           config.each do |field, type|
             const field, type
           end
+
+          def match(&fn) = self.class::CONTAINER.match(&fn).call(self)
         end
 
         container_module.const_set(type.capitalize, klass)
+        container_module.define_method(type) do
+          klass
+        end
       end
 
       container_module
